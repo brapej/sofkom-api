@@ -6,6 +6,7 @@ import edu.raf.sofkom.model.User;
 import edu.raf.sofkom.users.StorageUsers;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,38 +23,42 @@ public class ConnectionUtils {
             return false;
         }
 
-        HashSet<String> filetypeRestrictions;
 
         Path usersMetaPath = Paths.get(path,"users_state.json");
         Path ftrMetaPath = Paths.get(path,"ftr_state.json");
+        Path fileMetaPath = Paths.get(path,"filesmeta_state.json");
         StorageUsers usersT;
         HashMap<String, User> usersMapT;
+
         User userT;
 
 
         ObjectMapper om;
 
-  /*      System.out.println(usersMetaPath.toString()+":pre");
-        System.out.println(userName+":pre");
-        System.out.println(password+":pre");*/
+        HashSet<String> filetypeRestrictions;
+        HashMap<String,HashMap<String,String>> fileMetaMap;
+
+
         if(Files.exists(usersMetaPath)){
 
-            System.out.println(usersMetaPath.toString()+":suc");
+            System.out.println(usersMetaPath.toString()+":loaded");
             om = new ObjectMapper();
             usersT = om.readValue(usersMetaPath.toFile(),StorageUsers.class);
+
+
             usersMapT = usersT.getUsers();
 /*
             System.out.println(usersMapT.toString());
 */
 
             if(usersMapT.containsKey(userName)){
-/*
-                System.out.println(userName+":suc");
-*/
+
+                System.out.println(userName+":matched");
+
                 userT = usersMapT.get(userName);
 
                 if(userT.getPassword().equals(password)){
-                    System.out.println(password+":suc");
+                    System.out.println(password+":matched");
 
                     storageClass.getStorageUsers().setSuperUser(usersT.getSuperUser());
 /*
@@ -63,10 +68,17 @@ public class ConnectionUtils {
                     storageClass.getStorageUsers().setUsers(usersMapT);
 
 
+
                     if(Files.exists(ftrMetaPath)){
                         filetypeRestrictions = om.readValue(ftrMetaPath.toFile(), HashSet.class);
                         storageClass.setFiletypeRestrictions(filetypeRestrictions);
                     }
+                    if(Files.exists(fileMetaPath)){
+                       fileMetaMap  = om.readValue(ftrMetaPath.toFile(), HashMap.class);
+                        storageClass.setFilesMeta(fileMetaMap);
+                    }
+                    storageClass.setPathToStorage(path);
+                    storageClass.setPathToDownloads(Paths.get(path).toFile().getParent()+ File.separator+Paths.get(path).getFileName()+"-downloads");
 
                     return true;
                 }
@@ -86,8 +98,8 @@ public class ConnectionUtils {
         pathToStorage = fileStorage.getPathToStorage();
         storageUsers = fileStorage.getStorageUsers();
 
-        System.out.println(pathToStorage);
-        System.out.println(storageUsers.toString());
+        /*System.out.println(pathToStorage);
+        System.out.println(storageUsers.toString());*/
 
         if(!Files.exists(Paths.get(pathToStorage))){
            System.exit(0);
@@ -98,19 +110,25 @@ public class ConnectionUtils {
         ObjectMapper om = new ObjectMapper();
         Path usersMeta = Paths.get(pathToStorage,"users_state.json");
         Path ftrMeta = Paths.get(pathToStorage,"ftr_state.json");
+        Path filesMeta = Paths.get(pathToStorage,"filesmeta_state.json");
 
-        System.out.println(usersMeta.toString());
-        System.out.println(ftrMeta.toString());
+
+
 
 
         if(Files.exists(usersMeta))
             Files.delete(usersMeta);
         if(Files.exists(ftrMeta))
-            Files.delete(usersMeta);
+            Files.delete(ftrMeta);
+        if(Files.exists(filesMeta))
+            Files.delete(filesMeta);
 
         om.writeValue(usersMeta.toFile(),storageUsers);
+        System.out.println(usersMeta.toString()+": Saved.");
         om.writeValue(ftrMeta.toFile(),fileStorage.getFiletypeRestrictions());
-
+        System.out.println(ftrMeta.toString()+": Saved.");
+        om.writeValue(filesMeta.toFile(),fileStorage.getFilesMeta());
+        System.out.println(filesMeta.toString()+": Saved.");
 
          System.exit(0);
     }

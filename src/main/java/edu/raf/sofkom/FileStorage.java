@@ -10,7 +10,7 @@ import java.io.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
+import java.util.*;
 
 
 @Data
@@ -23,8 +23,7 @@ import java.util.HashSet;
     private String pathToDownloads= Paths.get(System.getProperty("user.home"),"storage-downloads").toString();
     private String currentPath = Paths.get("./").toString();
     private HashSet<String> filetypeRestrictions = new HashSet<>();
-
-
+    private HashMap<String,HashMap<String,String>> filesMeta = new HashMap<>();
 
 
 
@@ -36,17 +35,26 @@ import java.util.HashSet;
     }*/
 
 
+
     public abstract void init(String pathToStorage,String storageName) throws IOException;
-    public abstract boolean store(String to, String from) throws  IOException, PrivilegeException;
-    public abstract boolean store(String to, String... from) throws  IOException,PrivilegeException;
-    public abstract boolean store(Path to, Path from) throws IOException, PrivilegeException;
-    public abstract boolean store(Path to, Path... from) throws IOException,PrivilegeException;
+    public abstract boolean store(String to, String from) throws  IOException, PrivilegeException, UnsuportedTypeException;
+    public abstract boolean store(String to, String... from) throws  IOException,PrivilegeException, UnsuportedTypeException;
+    public abstract boolean store(Path to, Path from) throws IOException, PrivilegeException, UnsuportedTypeException;
+    public abstract boolean store(Path to, Path... from) throws IOException,PrivilegeException, UnsuportedTypeException;
     public abstract boolean retrieve(Path from) throws PrivilegeException,IOException;
    public abstract boolean retrieve(String from) throws PrivilegeException, IOException;
    public abstract boolean delete(String path) throws PrivilegeException,IOException;
     public abstract boolean delete(Path toDelete) throws PrivilegeException,IOException;
 
 
+    public void store(String pathTo,String from,HashMap<String,String> meta) throws IOException, PrivilegeException, UnsuportedTypeException {
+        if(store(pathTo,from))
+            filesMeta.put(Paths.get(pathTo, String.valueOf(Paths.get(from).getFileName())).toString(),meta);
+    }
+
+    public String readFileMeta(String filePath){
+       return filesMeta.get(filePath).toString();
+    }
 
    public boolean addFiletypeRestriction(String ft) throws PrivilegeException{
 
@@ -101,7 +109,6 @@ import java.util.HashSet;
    protected Path toStoragePath(Path path) {
       return Paths.get(this.pathToStorage).resolve(path.getFileName());
    }
-
 
 
 
