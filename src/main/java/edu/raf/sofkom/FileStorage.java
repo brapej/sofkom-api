@@ -36,57 +36,113 @@ import java.util.*;
 
 
 
+    /**
+     * Initialises storage on a given path with a given name.
+     * @param pathToStorage Path on witch the storage will be created
+     * @param storageName Name of the folder(storage)
+     * */
     public abstract void init(String pathToStorage,String storageName) throws IOException;
+    /**
+     * Stores a file from one given path to the other.
+     * @param from this path
+     * @param to this path witch is relative to storage.
+     * */
     public abstract boolean store(String to, String from) throws  IOException, PrivilegeException, UnsuportedTypeException;
+    /**
+     * Stores a file from multiple given paths to the other.
+     * @param from this path's
+     * @param to this path witch is relative to storage.
+     * */
     public abstract boolean store(String to, String... from) throws  IOException,PrivilegeException, UnsuportedTypeException;
+    /**
+     * Stores a file from multiple given paths to the other.
+     * @param from this path
+     * @param to this path witch is relative to storage.
+     * */
     public abstract boolean store(Path to, Path from) throws IOException, PrivilegeException, UnsuportedTypeException;
+    /**
+     * Stores a file from multiple given paths to the other.
+     * @param from this path's
+     * @param to this path witch is relative to storage.
+     * */
     public abstract boolean store(Path to, Path... from) throws IOException,PrivilegeException, UnsuportedTypeException;
+    /**
+     * Retrieves a file
+     * @param from this path's
+     * */
     public abstract boolean retrieve(Path from) throws PrivilegeException,IOException;
+    /**
+     * Retrieves a file
+     * @param from this path's
+     * */
    public abstract boolean retrieve(String from) throws PrivilegeException, IOException;
+    /**
+     * Deletes a file from the given path
+     * @param path path
+     * */
    public abstract boolean delete(String path) throws PrivilegeException,IOException;
-    public abstract boolean delete(Path toDelete) throws PrivilegeException,IOException;
+    /**
+     * Deletes a file from the given path
+     * @param path path
+     * */
+    public abstract boolean delete(Path path) throws PrivilegeException,IOException;
 
 
-    public void store(String pathTo,String from,HashMap<String,String> meta) throws IOException, PrivilegeException, UnsuportedTypeException {
-        if(store(pathTo,from))
-            filesMeta.put(Paths.get(pathTo, String.valueOf(Paths.get(from).getFileName())).toString(),meta);
+    /**
+     * Stores a file and its metadata from the given path
+     * @param from this path
+     * @param to this path
+     * @param meta with given metadata.
+     * */
+    public void store(String to,String from,HashMap<String,String> meta) throws IOException, PrivilegeException, UnsuportedTypeException {
+        if(store(to,from))
+            filesMeta.put(Paths.get(to, String.valueOf(Paths.get(from).getFileName())).toString(),meta);
     }
 
     public String readFileMeta(String filePath){
        return filesMeta.get(filePath).toString();
     }
 
-   public boolean addFiletypeRestriction(String ft) throws PrivilegeException{
+    /**
+     * Restricts filetype to a storage
+     * @param extension filetype extension (.txt ,.xml , .bat...)
+     * */
+   public boolean addFiletypeRestriction(String extension) throws PrivilegeException{
 
       if(storageUsers.ifSuperUser())
          throw new PrivilegeException("Permission denied,current user not superuser.");
 
-      if(ft.charAt(0) != '.') {
-         ft = ".".concat(ft);
+      if(extension.charAt(0) != '.') {
+         extension = ".".concat(extension);
       }
-      ft = getFileExtension(new File(ft));
-      if(!ft.equals("") && !filetypeRestrictions.contains(ft)){
-      filetypeRestrictions.add(ft);
+      extension = getFileExtension(new File(extension));
+      if(!extension.equals("") && !filetypeRestrictions.contains(extension)){
+      filetypeRestrictions.add(extension);
       return true;
       }
          return false;
    }
 
-    public boolean removeFiletypeRestriction(String ft) throws PrivilegeException{
+    /**
+     * Unrestricts filetype to a storage
+     * @param extension filetype extension (.txt ,.xml , .bat...)
+     * */
+    public boolean removeFiletypeRestriction(String extension) throws PrivilegeException{
 
         if(storageUsers.ifSuperUser())
             throw new PrivilegeException("Permission denied,current user not superuser.");
 
-        if(ft.charAt(0) != '.') {
-            ft = ".".concat(ft);
+        if(extension.charAt(0) != '.') {
+            extension = ".".concat(extension);
         }
-        ft = getFileExtension(new File(ft));
-        if(!ft.equals("") && !filetypeRestrictions.contains(ft)){
-            filetypeRestrictions.remove(ft);
+        extension = getFileExtension(new File(extension));
+        if(!extension.equals("") && !filetypeRestrictions.contains(extension)){
+            filetypeRestrictions.remove(extension);
             return true;
         }
         return false;
     }
+
 
 
       private String getFileExtension(File file) {
@@ -99,9 +155,14 @@ import java.util.*;
       }
 
 
+    /**
+     * Prints user as a string
+     * @param userName Username
+     * */
       public String getUserString(String userName){
       return this.storageUsers.getUsers().get(userName).toString();
       }
+
 
    protected    Path toStoragePath(String path) {
       return toStoragePath(Paths.get(path));
